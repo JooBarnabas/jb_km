@@ -41,10 +41,10 @@
             </q-card-section>
         </div>
         <div class="bg-darkBegie">
-            forrás
+            <p v-for="(item, idx) in p.car.kepek" :key="idx">{{item}}</p>
         </div>
         <div class="bg-lightBegie">
-            <button>Hirdetés szerkesztése</button>
+            <q-btn label="Hirdetés szerkesztése" no-caps @click="$emit(editDialog)"></q-btn>
         </div>
     </div>
 </template>
@@ -56,6 +56,7 @@ const slide = ref(1);
 const toggleValue = ref(false);
 const teljesLeiras = p.car.leiras;
 const leiras = ref();
+const editDialog = 'editDialog';
 
 function leirasToggle(){
     var count = 0;

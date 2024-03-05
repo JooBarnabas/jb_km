@@ -4,6 +4,7 @@ import CarCategorySelect from "src/components/CarCategorySelect.vue";
 import { useStore } from "../stores/store";
 import { onMounted } from "vue";
 import { ref } from "vue";
+import EditDialogComponent from "src/components/EditDialogComponent.vue";
 
 const store = useStore();
 // const selectedCategory = ref("Személyautó");
@@ -19,6 +20,13 @@ onMounted(() => {
     console.log(cars.value)
   }
   updateCars();
+
+  function editDocument(hirdetes) {
+  store.many.document._id = hirdetes._id;
+  store.app.showEditDialog = true;
+  console.log(hirdetes._id);
+}
+
   </script>
 <template>
   <q-page>
@@ -27,10 +35,11 @@ onMounted(() => {
     </div>
 
     <div class="row justify-center">
-     
+      <EditDialogComponent />
       <div v-for="(car, index) in cars" :key="car" class="col-12 col-md-6 col-lg-4">
-        <CarCardComponent :car = "car" :index="index"/>
+        <CarCardComponent :car = "car" :index="index" @editDialog="editDocument(car)"/>
       </div>
+      
       <div class="bg-blue-5 col-sm-12 col-md-6 col-lg-4 col-xl-3"></div>
     </div>
   </q-page>
