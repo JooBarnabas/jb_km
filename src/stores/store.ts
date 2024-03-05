@@ -106,44 +106,45 @@ export const useStore = defineStore({
         });
     },
 
-    // async one_getByCategory(): Promise<void> {
-    //   Loading.show();
-    //   api
-    //   .get(`api/kategoriak/${this.app.selectedCategory}/hirdetesek`).then((res) => {
-    //     Loading.hide();
-    //     if (res?.data) {
-    //       this.many.documents = res.data.map((r: any) => r.kategoria_hirdetesei).flat();
-    //       this.many.documents = this.many.documents.map((r: any) => ({
-    //         ...r,
-    //         aktKep: 0,
-    //         expandedLeiras: false,
-    //       }));
-    //     }
-    // } },
-    async other_GetAll(kategoriaNev): Promise<void> {
+    async one_getByCategory(selectedCategory): Promise<void> {
       Loading.show();
-      this.other.documents = [];
       api
-        .get(`api/kategoriak/${kategoriaNev}/hirdetesek`)
-        .then((res) => {
-          Loading.hide();
-          if (res?.data) {
-            this.other.documents = res.data[0].kategoria_hirdetesei;
-          }
-        })
-        .catch((error) => {
-          ShowErrorWithNotify(error);
-        });
-    },
+      .get(`api/kategoriak/${selectedCategory}/hirdetesek`).then((res) => {
+        Loading.hide();
+        if (res?.data) {
+          this.many.documents = res.data.map((r: any) => r.kategoria_hirdetesei).flat();
+          this.many.documents = this.many.documents.map((r: any) => ({
+            ...r,
+            aktKep: 0,
+            expandedLeiras: false,
+          }));
+        }
+    }) 
+  },
+    // async other_GetAll(kategoriaNev): Promise<void> {
+    //   Loading.show();
+    //   this.other.documents = [];
+    //   api
+    //     .get(`api/kategoriak/${kategoriaNev}/hirdetesek`)
+    //     .then((res) => {
+    //       Loading.hide();
+    //       if (res?.data) {
+    //         this.other.documents = res.data[0].kategoria_hirdetesei;
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       ShowErrorWithNotify(error);
+    //     });
+    // },
     async getAllCategories() {
       Loading.show();
-      this.many.documents = [];
+      this.other.documents = [];
       api
         .get("api/kategoriak")
         .then((res) => {
           Loading.hide();
           if (res?.data) {
-            this.many.documents = res.data;
+            this.other.documents = res.data;
           }
         })
         .catch((error) => {

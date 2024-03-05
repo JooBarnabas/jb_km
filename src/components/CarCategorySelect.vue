@@ -2,8 +2,10 @@
 import { ref } from "vue";
 import { useStore } from "src/stores/store";
 const store = useStore();
-
+const p = defineProps(["updateCars"]);
 const selectedCategory = ref("Személyautó");
+
+const categories = ref()
 
 store.one_GetAll()
     .then((res) =>
@@ -13,8 +15,12 @@ store.one_GetAll()
     });   
 
 const selectionChanged = () => {
-  store.other_GetAll(selectedCategory.value);
+  store.one_getByCategory(selectedCategory.value);
+  p.updateCars();
 };
+
+categories.value = store.other.documents;
+store.one_getByCategory(selectedCategory.value);
 </script>
 
 <template>
@@ -26,12 +32,10 @@ const selectionChanged = () => {
       map-options
       option-label="nev"
       option-value="nev"
-      :options="store.many.documents"
+      :options="categories"
       @update:model-value="selectionChanged()"
     ></q-select>
   </div>
-
-  {{ selectedCategory }}
 </template>
 
 <style scoped>
