@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { useStore, IMany } from "../stores/store";
 import { onMounted } from "vue";
 import { QTableColumn } from "quasar";
@@ -82,7 +82,7 @@ function filterUpdate() {
       title="Hahu hirdetések"
       wrap-cells
     >
-      <!-- Slot-ok: -->
+      <! Slot-ok: 
       <template #body-cell-imgField="props">
         <q-td :props="props">
           <q-img class="myImg" :src="props.value" width="150px" />
@@ -98,9 +98,9 @@ function filterUpdate() {
     </q-table>
     <NewDialogComponent />
     <EditDialogComponent />
-    <!-- {{ store.app.selected }} -->
+    <!- {{ store.app.selected }} -
 
-    <!-- Buttons: -->
+    < Buttons: --
     <div class="row justify-center q-mt-sm q-gutter-md">
       <q-btn color="green" label="Új hirdetés" no-caps @click="store.app.showNewDialog = true" />
       <q-btn
@@ -132,4 +132,4 @@ function filterUpdate() {
 .myImg {
   border-radius: 20px;
 }
-</style>
+</style> -->

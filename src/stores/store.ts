@@ -12,12 +12,6 @@ export interface IApp {
   filter: string;
   selectedMany: Array<IMany>;
   selectedOne: Array<IOne>;
-  yesNoComp: {
-    kérdés: string;
-    pozitívGomb: string;
-    negatívGomb: string;
-    válasz?: boolean;
-  }
 }
 
 export interface IOne {
@@ -26,15 +20,22 @@ export interface IOne {
 }
 
 export interface IMany {
-  id?: number; // PK
-  categoryId?: number; // FK
-  titleField?: string;
-  descField?: string;
-  dateField?: string;
-  boolField?: boolean;
-  priceField?: number;
-  imgField?: string;
-  category?: IOne;
+  _id?: number; // PK
+  kategoria_id?: number; // FK
+  cim?: string;
+  evjarat?: number;
+  km_allas?: number;
+  szin?: string;
+  uzemanyag?: string;
+  hengerurtartalom?: number;
+  teljesitmeny?: number;
+  serulesmentes?: boolean;
+  leiras?: string;
+  hirdetes_datum?: Date;
+  vetelar?: number;
+  kepek?: Array<string>;
+  hirdetes_kategoria?: IOne;
+  teljesitmeny_kw?: number;
 }
 
 export interface IOther {
@@ -85,11 +86,6 @@ export const useStore = defineStore({
       filter: "",
       selectedMany: [],
       selectedOne: [],
-      yesNoComp:{
-        kérdés: "Igen vagy nem?",
-        pozitívGomb: "Igen",
-        negatívGomb: "Nem"
-      }
     },
   }),
   getters: {},
@@ -98,7 +94,7 @@ export const useStore = defineStore({
       Loading.show();
       this.one.documents = [];
       api
-        .get("api/categories")
+        .get("api/hirdetesek")
         .then((res) => {
           Loading.hide();
           if (res?.data) {
@@ -110,11 +106,40 @@ export const useStore = defineStore({
         });
     },
 
-    async many_GetAll(): Promise<void> {
+    // async one_getByCategory(): Promise<void> {
+    //   Loading.show();
+    //   api
+    //   .get(`api/kategoriak/${this.app.selectedCategory}/hirdetesek`).then((res) => {
+    //     Loading.hide();
+    //     if (res?.data) {
+    //       this.many.documents = res.data.map((r: any) => r.kategoria_hirdetesei).flat();
+    //       this.many.documents = this.many.documents.map((r: any) => ({
+    //         ...r,
+    //         aktKep: 0,
+    //         expandedLeiras: false,
+    //       }));
+    //     }
+    // } },
+    async other_GetAll(kategoriaNev): Promise<void> {
+      Loading.show();
+      this.other.documents = [];
+      api
+        .get(`api/kategoriak/${kategoriaNev}/hirdetesek`)
+        .then((res) => {
+          Loading.hide();
+          if (res?.data) {
+            this.other.documents = res.data[0].kategoria_hirdetesei;
+          }
+        })
+        .catch((error) => {
+          ShowErrorWithNotify(error);
+        });
+    },
+    async getAllCategories() {
       Loading.show();
       this.many.documents = [];
       api
-        .get("api/advertisements")
+        .get("api/kategoriak")
         .then((res) => {
           Loading.hide();
           if (res?.data) {
@@ -124,142 +149,160 @@ export const useStore = defineStore({
         .catch((error) => {
           ShowErrorWithNotify(error);
         });
-    },
+    }
 
-    async many_GetById(): Promise<void> {
-      if (this.many?.document?.id) {
-        Loading.show();
-        api
-          .get(`api/advertisements/${this.many.document.id}`)
-          .then((res) => {
-            Loading.hide();
-            if (res?.data) {
-              this.many.document = res.data;
-              // store startig data to PATCH method:
-              Object.assign(this.many.documentOld, this.many.document);
-            }
-          })
-          .catch((error) => {
-            ShowErrorWithNotify(error);
-          });
-      }
-    },
+    // async many_GetAll(): Promise<void> {
+    //   Loading.show();
+    //   this.many.documents = [];
+    //   api
+    //     .get("api/hirdetesek")
+    //     .then((res) => {
+    //       Loading.hide();
+    //       if (res?.data) {
+    //         this.many.documents = res.data;
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       ShowErrorWithNotify(error);
+    //     });
+    // },
 
-    async many_Filter(): Promise<void> {
-      if (this.app?.filter) {
-        this.many.documents = [];
-        // Loading.show();
-        api
-          .get(`advertisements?_expand=category&q=${this.app.filter}`)
-          .then((res) => {
-            // Loading.hide();
-            if (res?.data) {
-              this.many.documents = res.data;
-            }
-          })
-          .catch((error) => {
-            ShowErrorWithNotify(error);
-          });
-      }
-    },
+    // async many_GetById(): Promise<void> {
+    //   if (this.many?.document?._id) {
+    //     Loading.show();
+    //     api
+    //       .get(`api/hirdetesek/${this.many.document._id}`)
+    //       .then((res) => {
+    //         Loading.hide();
+    //         if (res?.data) {
+    //           res.data.hirdetes_datum = res.data.hirdetes_datum.slice(0, 10);
+    //           console.log(res.data.hirdetes_datum);
+    //           this.many.document = res.data;
+    //           // store startig data to PATCH method:
+    //           Object.assign(this.many.documentOld, this.many.document);
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         ShowErrorWithNotify(error);
+    //       });
+    //   }
+    // },
 
-    async many_EditById(): Promise<void> {
-      if (this.many?.document?.id) {
-        const diff: any = {};
-        // the diff object only stores changed fields:
-        Object.keys(this.many.document).forEach((k, i) => {
-          const newValue = Object.values(this.many.document)[i];
-          const oldValue = Object.values(this.many.documentOld)[i];
-          if (newValue != oldValue) diff[k] = newValue;
-        });
-        if (Object.keys(diff).length == 0) {
-          Notify.create({
-            message: "Nothing changed!",
-            color: "negative",
-          });
-        } else {
-          Loading.show();
-          api
-            .patch(`api/advertisements/${this.many.document.id}`, diff)
-            .then((res) => {
-              Loading.hide();
-              if (res?.data?.id) {
-                this.many_GetAll(); // refresh dataN with read all data again from backend
-                Notify.create({
-                  message: `Document with id=${res.data.id} has been edited successfully!`,
-                  color: "positive",
-                });
-              }
-            })
-            .catch((error) => {
-              ShowErrorWithNotify(error);
-            });
-        }
-      }
-    },
+    // async many_Filter(): Promise<void> {
+    //   if (this.app?.filter) {
+    //     this.many.documents = [];
+    //     // Loading.show();
+    //     api
+    //       .get(`hirdetesek?_expand=category&q=${this.app.filter}`)
+    //       .then((res) => {
+    //         // Loading.hide();
+    //         if (res?.data) {
+    //           this.many.documents = res.data;
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         ShowErrorWithNotify(error);
+    //       });
+    //   }
+    // },
 
-    async many_DeleteById(): Promise<void> {
-      if (this.many?.document?.id) {
-        Loading.show();
-        api
-          .delete(`api/advertisements/${this.many.document.id}`)
-          .then(() => {
-            Loading.hide();
-            this.many_GetAll(); // refresh dataN with read all data again from backend
-            Notify.create({
-              message: `Document with id=${this.many.document.id} has been deleted successfully!`,
-              color: "positive",
-            });
-          })
-          .catch((error) => {
-            ShowErrorWithNotify(error);
-          });
-      }
-    },
+    // async many_EditById(): Promise<void> {
+    //   if (this.many?.document?._id) {
+    //     const diff: any = {};
+    //     // the diff object only stores changed fields:
+    //     Object.keys(this.many.document).forEach((k, i) => {
+    //       const newValue = Object.values(this.many.document)[i];
+    //       const oldValue = Object.values(this.many.documentOld)[i];
+    //       if (newValue != oldValue) diff[k] = newValue;
+    //     });
+    //     if (Object.keys(diff).length == 0) {
+    //       Notify.create({
+    //         message: "Nothing changed!",
+    //         color: "negative",
+    //       });
+    //     } else {
+    //       Loading.show();
+    //       api
+    //         .patch(`api/hirdetesek/${this.many.document._id}`, diff)
+    //         .then((res) => {
+    //           Loading.hide();
+    //           if (res?.data?._id) {
+    //             this.many_GetAll(); // refresh dataN with read all data again from backend
+    //             Notify.create({
+    //               message: `Document with id=${res.data._id} has been edited successfully!`,
+    //               color: "positive",
+    //             });
+    //           }
+    //         })
+    //         .catch((error) => {
+    //           ShowErrorWithNotify(error);
+    //         });
+    //     }
+    //   }
+    // },
 
-    async many_Create(): Promise<void> {
-      if (this.many?.document) {
-        Loading.show();
-        api
-          .post("api/advertisements", this.many.document)
-          .then((res) => {
-            Loading.hide();
-            if (res?.data) {
-              this.many_GetAll(); // refresh dataN with read all data again from backend
-              Notify.create({
-                message: `New document with id=${res.data.id} has been saved successfully!`,
-                color: "positive",
-              });
-              // router.push("/page_path");
-            }
-          })
-          .catch((error) => {
-            ShowErrorWithNotify(error);
-          });
-      }
-    },
+    // async many_DeleteById(): Promise<void> {
+    //   if (this.many?.document?._id) {
+    //     Loading.show();
+    //     api
+    //       .delete(`api/hirdetesek/${this.many.document._id}`)
+    //       .then(() => {
+    //         Loading.hide();
+    //         this.many_GetAll(); // refresh dataN with read all data again from backend
+    //         Notify.create({
+    //           message: `Document with id=${this.many.document._id} has been deleted successfully!`,
+    //           color: "positive",
+    //         });
+    //       })
+    //       .catch((error) => {
+    //         ShowErrorWithNotify(error);
+    //       });
+    //   }
+    // },
 
-    async other_Create(): Promise<void> {
-      if (this.other?.document) {
-        Loading.show();
-        api
-          .post("api/xyz", this.other.document)
-          .then((res) => {
-            Loading.hide();
-            if (res?.data) {
-              Loading.hide();
-              Notify.create({
-                message: `New document with id=${res.data.id} has been saved successfully!`,
-                color: "positive",
-              });
-              // router.push("/page_path");
-            }
-          })
-          .catch((error) => {
-            ShowErrorWithNotify(error);
-          });
-      }
-    },
+    // async many_Create(): Promise<void> {
+    //   if (this.many?.document) {
+    //     Loading.show();
+    //     api
+    //       .post("api/hirdetesek", this.many.document)
+    //       .then((res) => {
+    //         Loading.hide();
+    //         if (res?.data) {
+    //           this.many_GetAll(); // refresh dataN with read all data again from backend
+    //           Notify.create({
+    //             message: `New document with id=${res.data.id} has been saved successfully!`,
+    //             color: "positive",
+    //           });
+    //           // router.push("/page_path");
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         ShowErrorWithNotify(error);
+    //       });
+    //   }
+    // },
+
+    // async other_Create(): Promise<void> {
+    //   if (this.other?.document) {
+    //     Loading.show();
+    //     api
+    //       .post("api/xyz", this.other.document)
+    //       .then((res) => {
+    //         Loading.hide();
+    //         if (res?.data) {
+    //           Loading.hide();
+    //           Notify.create({
+    //             message: `New document with id=${res.data.id} has been saved successfully!`,
+    //             color: "positive",
+    //           });
+    //           // router.push("/page_path");
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         ShowErrorWithNotify(error);
+    //       });
+    //   }
+    // },
   },
   // all "state" data is stored in browser session store:
   persist: {
