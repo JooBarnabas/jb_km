@@ -5,18 +5,21 @@ const store = useStore();
 const p = defineProps(["updateCars"]);
 const selectedCategory = ref("Személyautó");
 
-const categories = ref()
+const categories = ref();
 
-store.one_GetAll()
-    .then((res) =>
-    console.log(res))
-    .catch((err) => {
-      console.error(err);
-    });   
-
-const selectionChanged = () => {
+store
+  .one_GetAll()
+  .then((res) => console.log(res))
+  .catch((err) => {
+    console.error(err);
+  });
+async function call() {
   store.one_getByCategory(selectedCategory.value);
+  await new Promise((res) => setTimeout(res, 200));
   p.updateCars();
+}
+const selectionChanged = () => {
+  call();
 };
 
 categories.value = store.other.documents;
